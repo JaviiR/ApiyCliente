@@ -118,15 +118,29 @@ public class ClienteController {
             LinkedHashMap lista=(LinkedHashMap)cliente;
             Cliente clienteActualizado=new Cliente();
             clienteActualizado.setId(Integer.parseInt(lista.get("id").toString()));
-            if(!clienteService.validarcliente(clienteActualizado.getId())){
+            if(!clienteService.validarCliente(clienteActualizado.getId())){
                 return ResponseEntity.badRequest().body("El cliente no existe");
             }
-            LinkedHashMap datosPuestoEntrante=(LinkedHashMap)lista.get("puesto");
-            Puesto puesto =puestoService.obtenerPuesto(Integer.parseInt(datosPuestoEntrante.get("id").toString()));
-            clienteActualizado.setPuesto(puesto);
-            clienteActualizado.setSalario_final(Double.parseDouble(lista.get("salario_final").toString()));
-            clienteActualizado.setFecha_ingreso(ParsearFecha.parsearString(lista.get("fecha_ingreso").toString()));
-            clienteService.actualizarcliente(clienteActualizado);
+String estadoString=lista.get("estado").toString();
+            EstadoClienteEnum estado=EstadoClienteEnum.ACTIVO;
+            switch(estadoString){
+                case "ACTIVO":
+                estado=EstadoClienteEnum.ACTIVO;
+                break;
+                case "INACTIVO":
+                estado=EstadoClienteEnum.INACTIVO;
+                break;
+                case "SUSPENDIDO":
+                estado=EstadoClienteEnum.SUSPENDIDO;
+                break;
+                default:
+                estado=EstadoClienteEnum.ACTIVO;
+                break;
+            }
+            clienteActualizado.setEstado(estado);
+            clienteActualizado.setUsuario(lista.get("usuario").toString());
+            clienteActualizado.setContraseña(lista.get("contraseña").toString());
+            clienteService.actualizarCliente(clienteActualizado);
             return ResponseEntity.ok().body("cliente actualizado correctamente");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getLocalizedMessage());
