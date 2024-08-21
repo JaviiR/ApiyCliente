@@ -111,18 +111,21 @@ public class ClienteController {
         }
     }
 
-    /*@CrossOrigin(origins = "*")
+    @CrossOrigin(origins = "*")
     @PutMapping("/cliente")
     public ResponseEntity<?> actualizarcliente(@RequestBody Object cliente){
         try {
             LinkedHashMap lista=(LinkedHashMap)cliente;
-            Cliente clienteActualizado=new Cliente();
-            clienteActualizado.setId(Integer.parseInt(lista.get("id").toString()));
-            if(!clienteService.validarCliente(clienteActualizado.getId())){
+            //validando si el id del cliente existe
+            if(!clienteService.validarCliente(Integer.parseInt(lista.get("id").toString()))){
                 return ResponseEntity.badRequest().body("El cliente no existe");
             }
-String estadoString=lista.get("estado").toString();
-            EstadoClienteEnum estado=EstadoClienteEnum.ACTIVO;
+            //obtengo el cliente y actualizo sus datos con los datos de entrada
+            Cliente clienteActualizado=clienteService.obtenerCliente(Integer.parseInt(lista.get("id").toString()));
+            //valido que solo cambie el estado si no es nulo
+            if(!lista.get("estado").toString().equals("") && lista.get("estado")!=null){
+                String estadoString=lista.get("estado").toString();
+                EstadoClienteEnum estado=EstadoClienteEnum.ACTIVO;
             switch(estadoString){
                 case "ACTIVO":
                 estado=EstadoClienteEnum.ACTIVO;
@@ -133,20 +136,28 @@ String estadoString=lista.get("estado").toString();
                 case "SUSPENDIDO":
                 estado=EstadoClienteEnum.SUSPENDIDO;
                 break;
+                //si el cliente envia un estado no valido devuelvo el mismo estado que tenia
                 default:
-                estado=EstadoClienteEnum.ACTIVO;
+                estado=clienteActualizado.getEstado();
                 break;
             }
             clienteActualizado.setEstado(estado);
-            clienteActualizado.setUsuario(lista.get("usuario").toString());
-            clienteActualizado.setContraseña(lista.get("contraseña").toString());
+            }
+            //si el usuario es vacio no actualizo
+            if(!lista.get("usuario").toString().equals("") && lista.get("usuario")!=null){
+                clienteActualizado.setUsuario(lista.get("usuario").toString());
+            }
+            //si la contraseña es vacia no actualizo
+            if(!lista.get("contraseña").toString().equals("") && lista.get("contraseña")!=null){
+                clienteActualizado.setContraseña(lista.get("contraseña").toString());
+            }
             clienteService.actualizarCliente(clienteActualizado);
             return ResponseEntity.ok().body("cliente actualizado correctamente");
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body(e.getLocalizedMessage());
         }
     }
-
+/*
     @CrossOrigin(origins = "*")
     @DeleteMapping("/cliente")
     public ResponseEntity<?> eliminarcliente(@RequestBody Object cliente){
